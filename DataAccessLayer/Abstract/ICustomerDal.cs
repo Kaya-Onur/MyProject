@@ -1,4 +1,5 @@
-﻿using EntityLayer.Concrete;
+﻿using Core.DataAccess;
+using EntityLayer.Concrete;
 using System;
 using System.Collections.Generic;
 using System.Text;
