@@ -1,9 +1,13 @@
 ﻿using BusinessLayer.Abstract;
 using BusinessLayer.Constants;
+using BusinessLayer.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Results;
 using DataAccessLayer.Abstract;
 using EntityLayer.Concrete;
 using EntityLayer.DTOs;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,20 +23,17 @@ namespace BusinessLayer.Concrete
             _productDal = productDal;
         }
 
-        
+        [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
-            if (product.ProductName.Length<2)
-            {
-                return new ErrorResult(Messages.ProductNameInValid);
-            }
+            
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
         }
 
         public IDataResult<List<Product>> GetAll()
         {
-            if (DateTime.Now.Hour==22)
+            if (DateTime.Now.Hour == 22)
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
             }
@@ -51,7 +52,7 @@ namespace BusinessLayer.Concrete
 
         public IDataResult<List<Product>> GetByUnitPrice(decimal min, decimal max)
         {
-            return new SuccessDataResult<List<Product>>(_productDal.GetAll(x =>x.UnitPrice<=max && x.UnitPrice>=min));
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(x => x.UnitPrice <= max && x.UnitPrice >= min));
         }
 
         public IDataResult<List<ProductDetailDto>> GetProductDetails()
