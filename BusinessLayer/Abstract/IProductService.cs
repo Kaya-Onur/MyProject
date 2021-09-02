@@ -17,5 +17,7 @@ namespace BusinessLayer.Abstract
         IResult Update(Product product);
         IDataResult<Product> GetById(int id);
 
+        IResult AddTransactionalTest(Product product);
+
     }
 }

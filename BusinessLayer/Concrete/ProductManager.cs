@@ -4,6 +4,8 @@ using BusinessLayer.CCS;
 using BusinessLayer.Constants;
 using BusinessLayer.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
+using Core.Aspects.Caching;
+using Core.Aspects.Transaction;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
@@ -30,8 +32,9 @@ namespace BusinessLayer.Concrete
 
         }
 
-        //[SecuredOperation("product.add,admin")]
+        [SecuredOperation("product.add,admin")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             IResult result = BusinessRules.Run(CheckIfProductCountOfCategoryCorrect(product.CategoryId),
@@ -46,7 +49,20 @@ namespace BusinessLayer.Concrete
             return new SuccessResult(Messages.ProductAdded);
 
         }
-        //[CacheAspect]
+
+        [TransactionScopeAspect]
+        public IResult AddTransactionalTest(Product product)
+        {
+            Add(product);
+            if(product.UnitPrice<10)
+            {
+                throw new Exception("");
+            }
+            Add(product);
+            return null;
+        }
+
+        [CacheAspect]
         public IDataResult<List<Product>> GetAll()
         {
             if (DateTime.Now.Hour == 22)
@@ -61,6 +77,7 @@ namespace BusinessLayer.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(x => x.CategoryId == id));
         }
 
+        [CacheAspect]
         public IDataResult<Product> GetById(int id)
         {
             return new SuccessDataResult<Product>(_productDal.Get(x => x.ProductId == id));
@@ -76,10 +93,14 @@ namespace BusinessLayer.Concrete
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
-
-
+            var result = _productDal.GetAll(x => x.CategoryId == product.CategoryId).Count();
+            if (result >= 10)
+            {
+                return new ErrorResult(Messages.ProductCountCategoryError);
+            }
             throw new NotImplementedException();
         }
 
