@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Abstract;
+using BusinessLayer.BusinessAspects.Autofac;
 using BusinessLayer.CCS;
 using BusinessLayer.Constants;
 using BusinessLayer.ValidationRules.FluentValidation;
@@ -29,6 +30,7 @@ namespace BusinessLayer.Concrete
 
         }
 
+        //[SecuredOperation("product.add,admin")]
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
@@ -44,7 +46,7 @@ namespace BusinessLayer.Concrete
             return new SuccessResult(Messages.ProductAdded);
 
         }
-
+        //[CacheAspect]
         public IDataResult<List<Product>> GetAll()
         {
             if (DateTime.Now.Hour == 22)
